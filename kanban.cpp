@@ -5,15 +5,11 @@ Instagram: @nickrois_
 Github: github.com/nickrois
 Description: Development of an organization tool in c++ with no visual framework.
 
-Sprint:
-   * Funcoes
-      - Criar bloco, numero(ref a cor), desc e titulo ok
-      - Definicao de cores ok
-   * "Ctrl + z" ok
-   * Ver desc ok
-   * Salvamento em arquivos
-   * Polimento
-   * Limpar buffer
+
+What is lacking:
+  * files;
+  * code polishment;
+  * buffer cleaner.
 
 */
 
