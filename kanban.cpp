@@ -1,16 +1,9 @@
 /*
-
 Creator: Nicolas Brambilla Rodrigues
 Instagram: @nickrois_
 Github: github.com/nickrois
-Description: Development of an organization tool in c++ with no visual framework.
-
-
-What is lacking:
-  * files;
-  * code polishment;
-  * buffer cleaner.
-
+Description: Development of an organization tool in c++ with no visual framework on Windows.
+-Thanks Bruno for the help with the files.
 */
 
 #include <bits/stdc++.h>
@@ -38,11 +31,13 @@ int pass(vector<bloco>& a,vector<bloco>& b,vector<bloco>& c,int &back, bloco& ba
 
 void goBack(vector<bloco>& a, vector<bloco>& b, vector<bloco>& c,int& back,int& back2, bloco& backCard);
 
+void eraseCards(vector<bloco>& a, vector<bloco>& b, vector<bloco>& c, map<int, string>& team);
+
 void printTeam();
 
 void add(vector<bloco>& a, vector<bloco>& c, vector<bloco>& d, bloco& backCard);
 
-int nextPos(vector<bloco>& a,string s);
+int nextPos(vector<bloco>& a, string s);
 
 void rem(vector<bloco>& a,vector<bloco>& b,vector<bloco>& c,bloco& backCard,int& back2);
 
@@ -55,6 +50,7 @@ void readFile(vector<bloco>& a, vector<bloco>& b, vector<bloco>& c,map<int, stri
 int main(){
   int op=0,back[2]={0,0};
   bloco backCard;
+  string erase;
 
   vector<bloco> todo;
   vector<bloco> doing;
@@ -63,12 +59,13 @@ int main(){
   todo.clear();
   doing.clear();
   done.clear();
-  //readFile(todo,doing,done,team);
+
+  readFile(todo,doing,done,team);
 
   system("color F0");
   while(op!=8){
     system("cls");
-    //saveFile(todo,doing,done,team);
+    saveFile(todo,doing,done,team);
     cout << "TO DO: ";
     print(todo);
     cout << endl << "DOING: ";
@@ -77,16 +74,17 @@ int main(){
     print(done);
     cout << endl << "TEAM: ";
     printTeam();
-    cout << endl << endl << endl ;
+    cout << endl << endl << endl;
     cout << "1- Add card" << endl;
     cout << "2- Move a card to next stage" << endl;
     cout << "3- Remove card " << endl;
     cout << "4- Read description " << endl;
     cout << "5- Go back " << endl;
+    cout << "6- Erase all cards " << endl;
     cout << "8- Sair" << endl << endl;
     cout << "Choose: ";
+    fflush(stdin);
     cin >> op;
-    //fflush(stdin);
     while(getchar()!='\n');
 
     switch(op){
@@ -108,6 +106,17 @@ int main(){
       case 5:
         goBack(todo,doing,done,back[0],back[1],backCard);
         break;
+      case 6:
+        cout << "THIS ACTION CANNOT BE UNDONE. PROCEED? [Y/N]" << endl;
+        getline(cin,erase);
+        if(erase=="Y"){
+          eraseCards(todo,doing,done,team);
+          back[0] = 5;
+        }else{
+          cout << "CANCELLED [enter]" << endl;
+          while(getchar()!='\n');
+        }
+        break;
       case 8:
         system("cls");
         return 0;
@@ -122,14 +131,22 @@ int main(){
   return 0;
 }//end main
 
+void eraseCards(vector<bloco>& a, vector<bloco>& b, vector<bloco>& c,map<int, string>& team){
+  a.clear();
+  b.clear();
+  c.clear();
+  team.clear();
+}//end eraseCards
+
 void readFile(vector<bloco>& a, vector<bloco>& b, vector<bloco>& c,map<int, string>& team){ //M N O P Q
   fstream file;
   bloco control;
   int map;
   string mapi,map2;
   string s;
+  string numero;
 
-  file.open("arq.txt");
+  file.open("cards.txt");
 
   if(file.fail()){
     cout << "File failed to open [enter]" << endl;
@@ -137,30 +154,29 @@ void readFile(vector<bloco>& a, vector<bloco>& b, vector<bloco>& c,map<int, stri
     return;
   }
 
-  while(1){
-    getline(file,s); //le sinalizador
-    getline(file,control.title); //recebe informacoes
-    getline(file,control.desc);
-    getline(file,control.resp);
-    //getline(file,control.member);
+  while(getline(file,s)){
+    if(s=="N" || s=="M" || s=="O"){
+      getline(file,control.title); //recebe informacoes
+      getline(file,control.desc);
+      getline(file,control.resp);
+      getline(file,numero);
+      control.member = stoi(numero);
+    }
+
     if(s=="N")
       a.push_back(control); //salva informacoes no PROGRAMA
     else if(s=="M")
       b.push_back(control);
     else if(s=="O")
       c.push_back(control);
-    else if(s=="P")
+    else if(s=="P"){
+      getline(file,numero);
+      map = stoi(numero);
+      getline(file,map2);
+      team.insert(pair<int, string>(map, map2));
+    }else if(s=="0")
       break;
-  }
 
-  while(1){ //mesmo para o map
-    getline(file,s);
-    //getline(file,map);
-    getline(file,map2);
-    if(s=="P")
-      //team.insert(pair<int, string>(map, map2));
-    if(s=="0")
-      break;
   }
 
   file.close();
@@ -169,7 +185,7 @@ void readFile(vector<bloco>& a, vector<bloco>& b, vector<bloco>& c,map<int, stri
 
 void saveFile(vector<bloco>& a, vector<bloco>& b, vector<bloco>& c,map<int, string>& team){
   fstream file;
-  file.open("arq.txt");
+  file.open("cards.txt", fstream::out | fstream::trunc);
 
   for(int i=0;i<a.size();i++){ //salva info no arquivo
     file << "N" << endl; //salva sinalizador
@@ -187,7 +203,7 @@ void saveFile(vector<bloco>& a, vector<bloco>& b, vector<bloco>& c,map<int, stri
     file << b[i].member << endl;
   }
 
-  for(int i=0;i<b.size();i++){ //mesmo para vec 3
+  for(int i=0;i<c.size();i++){ //mesmo para vec 3
     file << "O" << endl;
     file << c[i].title << endl;
     file << c[i].desc << endl;
@@ -195,11 +211,12 @@ void saveFile(vector<bloco>& a, vector<bloco>& b, vector<bloco>& c,map<int, stri
     file << c[i].member << endl;
   }
 
-  file << "P" << endl;
   for (const auto &team : team){ //mesmo para map
     file << "P" << endl;
     file << team.first << endl << team.second << endl;
   }
+
+  file << "0" << endl;
 
   file.close();
 }//end saveFile
@@ -237,6 +254,7 @@ void readDesc(vector<bloco>& a, vector<bloco>& b, vector<bloco>& c, int& back, i
       return;
     }
   }
+
   for(int i=0; i<c.size(); i++){
     if(c[i].title == s)
       read = true;
@@ -542,6 +560,7 @@ void rem(vector<bloco>& a,vector<bloco>& b,vector<bloco>& c,bloco& backCard,int&
       while(getchar()!='\n');
     }
   }
+
   for (int i=0; i<b.size(); i++){
     if(b[i].title == s)
       remove = true;
@@ -554,6 +573,7 @@ void rem(vector<bloco>& a,vector<bloco>& b,vector<bloco>& c,bloco& backCard,int&
       while(getchar()!='\n');
     }
   }
+
   for (int i=0; i<c.size(); i++){
     if(c[i].title == s)
       remove = true;
@@ -589,17 +609,13 @@ void rem(vector<bloco>& a,vector<bloco>& b,vector<bloco>& c,bloco& backCard,int&
   cout << "Card doesn't exist [enter]" << endl;
   while(getchar()!='\n');
 
-
 }//end rem
 
 int nextPos(vector<bloco>& a, string s){
 
-  for (int i=0; i<a.size(); i++){
-    if(a[i].title == s){
+  for (int i=0; i<a.size(); i++)
+    if(a[i].title == s)
       return i;
-    }
-  }
 
   return -1;
-
 }//end nextPos
